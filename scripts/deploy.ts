@@ -1,4 +1,7 @@
-import { ethers } from 'hardhat';
+import * as hre from 'hardhat';
+
+const hreWithEthers = hre as typeof hre & { ethers: any };
+const ethers = hreWithEthers.ethers;
 
 async function main() {
   console.log('Deploying StakePassCore...');
