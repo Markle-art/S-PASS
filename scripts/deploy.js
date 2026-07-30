@@ -34,30 +34,59 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-// @ts-nocheck
 import { ethers } from 'hardhat';
 function main() {
     return __awaiter(this, void 0, void 0, function () {
-        var StakePassCore, stakePassCore, _a, _b, _c, _d;
-        var _e;
-        return __generator(this, function (_f) {
-            switch (_f.label) {
-                case 0: return [4 /*yield*/, ethers.getContractFactory('StakePassCore')];
+        var StakePassCore, core, coreAddress, RewardToken, token, tokenAddress, AirdropManager, airdrop, airdropAddress;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    console.log('Deploying StakePassCore...');
+                    return [4 /*yield*/, ethers.getContractFactory('StakePassCore')];
                 case 1:
-                    StakePassCore = _f.sent();
+                    StakePassCore = _a.sent();
                     return [4 /*yield*/, StakePassCore.deploy()];
                 case 2:
-                    stakePassCore = _f.sent();
-                    return [4 /*yield*/, stakePassCore.waitForDeployment()];
+                    core = _a.sent();
+                    return [4 /*yield*/, core.waitForDeployment()];
                 case 3:
-                    _f.sent();
-                    _b = (_a = console).log;
-                    _d = (_c = JSON).stringify;
-                    _e = {};
-                    return [4 /*yield*/, stakePassCore.getAddress()];
+                    _a.sent();
+                    return [4 /*yield*/, core.getAddress()];
                 case 4:
-                    _b.apply(_a, [_d.apply(_c, [(_e.stakePassCore = _f.sent(),
-                                _e), null, 2])]);
+                    coreAddress = _a.sent();
+                    console.log("  StakePassCore \u2192 ".concat(coreAddress));
+                    console.log('Deploying RewardToken (SPASS)...');
+                    return [4 /*yield*/, ethers.getContractFactory('RewardToken')];
+                case 5:
+                    RewardToken = _a.sent();
+                    return [4 /*yield*/, RewardToken.deploy()];
+                case 6:
+                    token = _a.sent();
+                    return [4 /*yield*/, token.waitForDeployment()];
+                case 7:
+                    _a.sent();
+                    return [4 /*yield*/, token.getAddress()];
+                case 8:
+                    tokenAddress = _a.sent();
+                    console.log("  RewardToken   \u2192 ".concat(tokenAddress));
+                    console.log('Deploying AirdropManager...');
+                    return [4 /*yield*/, ethers.getContractFactory('AirdropManager')];
+                case 9:
+                    AirdropManager = _a.sent();
+                    return [4 /*yield*/, AirdropManager.deploy(tokenAddress, coreAddress)];
+                case 10:
+                    airdrop = _a.sent();
+                    return [4 /*yield*/, airdrop.waitForDeployment()];
+                case 11:
+                    _a.sent();
+                    return [4 /*yield*/, airdrop.getAddress()];
+                case 12:
+                    airdropAddress = _a.sent();
+                    console.log("  AirdropManager \u2192 ".concat(airdropAddress));
+                    console.log('\n✅ All contracts deployed.');
+                    console.log("\nAdd these to your .env:");
+                    console.log("VITE_STAKEPASS_CORE_ADDRESS=".concat(coreAddress));
+                    console.log("VITE_SPASS_TOKEN_ADDRESS=".concat(tokenAddress));
                     return [2 /*return*/];
             }
         });

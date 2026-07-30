@@ -14,7 +14,7 @@ declare global {
 const CONTRACT_ADDRESS =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> })
     .env?.VITE_STAKEPASS_CORE_ADDRESS ||
-  '0x77426B5099501C023106E0a83FF75fe6F2aFE94D';
+  '0x7015c225586d4a95ebc585Ba947d7F0236A5D9d1';
 
 const CONTRACT_ABI = [
   'function createEvent(uint256 _depositAmount) external returns (uint256)',
@@ -55,9 +55,9 @@ export default function OrganizerPage() {
     }
     try {
       setIsBusy(true);
-      const signer = await ensureSigner();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      const tx = await contract.createEvent(ethers.parseEther(depositAmount));
+      // const signer = await ensureSigner();
+      // const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      // const tx = await contract.createEvent(ethers.parseEther(depositAmount));
       // const receipt = await tx.wait();
       const newId = events.length + 1;
       const newEvent: StakePassEvent = {

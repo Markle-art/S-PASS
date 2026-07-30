@@ -15,7 +15,7 @@ declare global {
 const CONTRACT_ADDRESS =
   (import.meta as ImportMeta & { env?: Record<string, string | undefined> })
     .env?.VITE_STAKEPASS_CORE_ADDRESS ||
-  '0x77426B5099501C023106E0a83FF75fe6F2aFE94D';
+  '0x7015c225586d4a95ebc585Ba947d7F0236A5D9d1';
 
 const CONTRACT_ABI = [
   'function registerAndStake(uint256 _eventId) external payable',
