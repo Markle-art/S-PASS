@@ -58,7 +58,7 @@ export default function OrganizerPage() {
       const signer = await ensureSigner();
       const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
       const tx = await contract.createEvent(ethers.parseEther(depositAmount));
-      const receipt = await tx.wait();
+      // const receipt = await tx.wait();
       const newId = events.length + 1;
       const newEvent: StakePassEvent = {
         id: newId,

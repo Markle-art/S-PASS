@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Sparkles, ArrowRight } from 'lucide-react';
+import { CalendarDays, MapPin, Sparkles } from 'lucide-react';
 
 const event = {
   title: 'Avalanche Summit',

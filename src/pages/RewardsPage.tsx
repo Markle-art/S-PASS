@@ -1,4 +1,4 @@
-import { Gift, ArrowRight } from 'lucide-react';
+import { Gift } from 'lucide-react';
 
 const rewards = [
   { label: 'Verified check-in', amount: '250 SPASS', status: 'Claimed', statusColor: 'text-emerald-700 bg-emerald-50' },
