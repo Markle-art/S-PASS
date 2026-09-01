@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { Menu, Wallet, ChevronDown } from 'lucide-react';
+import { Menu, Wallet, LogOut, ChevronDown } from 'lucide-react';
 import HamburgerMenu from './HamburgerMenu';
 import { FUJI_CHAIN_ID, switchToFuji } from '../utils/network';
+import { useAuth } from '../context/AuthContext';
+import { roleLabel } from '../data/users';
 
 declare global {
   interface Window {
@@ -16,9 +18,10 @@ export default function Layout() {
   const [walletAddress, setWalletAddress] = useState('');
   const [balance, setBalance] = useState('');
   const [chainId, setChainId] = useState<number | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false)
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const updateBalance = useCallback(async (address: string) => {
     if (!window.ethereum) return;
@@ -84,31 +87,52 @@ export default function Layout() {
   const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-xl font-bold tracking-tight text-gray-900"
+            className="flex items-center gap-1.5 text-xl font-black uppercase tracking-tight text-white"
           >
-            Stake<span className="text-brand-600">Pass</span>
+            Stake<span className="text-[#e60012]">Pass</span>
             {!isHome && (
-              <ChevronDown size={16} className="ml-1 rotate-90 text-gray-400" />
+              <ChevronDown size={16} className="ml-1 rotate-90 text-white/30" />
             )}
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
+            {isAuthenticated && user && (
+              <button
+                onClick={() => navigate('/login')}
+                className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 sm:inline-flex"
+                title={`Signed in as ${user.name}`}
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e60012] text-[10px] font-black uppercase text-white">
+                  {user.name
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')}
+                </span>
+                <span className="text-left leading-tight">
+                  <span className="block text-xs font-semibold text-white">{user.name}</span>
+                  <span className="block text-[10px] uppercase tracking-wide text-white/40">
+                    {roleLabel[user.role]}
+                  </span>
+                </span>
+              </button>
+            )}
+
             {chainId && (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium ${
+                className={`hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium md:inline-flex ${
                   chainId === FUJI_CHAIN_ID
-                    ? 'bg-emerald-50 text-emerald-700'
-                    : 'bg-amber-50 text-amber-700'
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'bg-amber-500/10 text-amber-400'
                 }`}
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    chainId === FUJI_CHAIN_ID ? 'bg-emerald-500' : 'bg-amber-500'
+                    chainId === FUJI_CHAIN_ID ? 'bg-emerald-400' : 'bg-amber-400'
                   }`}
                 />
                 {chainId === FUJI_CHAIN_ID ? 'Fuji' : `Chain ${chainId}`}
@@ -116,27 +140,45 @@ export default function Layout() {
             )}
 
             {walletAddress && balance && (
-              <span className="hidden rounded-lg bg-gray-100 px-2.5 py-1.5 text-xs font-medium text-gray-600 sm:inline-flex">
+              <span className="hidden rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-xs font-medium text-white/60 lg:inline-flex">
                 {balance} AVAX
               </span>
             )}
 
             <button
-              onClick={connectWallet}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-gray-900 px-2.5 py-2 text-xs font-medium text-white transition hover:bg-gray-800 sm:gap-2 sm:px-4 sm:text-sm"
+              onClick={() => (isAuthenticated ? logout() : navigate('/login'))}
+              className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white md:inline-flex"
             >
+              {isAuthenticated ? (
+                <>
+                  <LogOut size={15} />
+                  Sign out
+                </>
+              ) : (
+                <>
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#e60012]" />
+                  Sign in
+                </>
+              )}
+            </button>
 
+            <button
+              onClick={connectWallet}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-[#e60012] px-2.5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-700 sm:gap-2 sm:px-4 sm:text-sm"
+            >
               <Wallet size={15} />
-              {isConnecting
-                ? 'Connecting…'
-                : walletAddress
-                  ? `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`
-                  : 'Connect Wallet'}
+              {isConnecting ? (
+                'Connecting…'
+              ) : walletAddress ? (
+                `${walletAddress.slice(0, 6)}…${walletAddress.slice(-4)}`
+              ) : (
+                'Connect Wallet'
+              )}
             </button>
 
             <button
               onClick={() => setMenuOpen(true)}
-              className="rounded-xl p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700"
+              className="rounded-lg border border-white/10 p-2 text-white/60 transition hover:border-white/30 hover:text-white"
             >
               <Menu size={22} />
             </button>
@@ -144,8 +186,10 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-8">
-        <Outlet context={{ walletAddress, connectWallet }} />
+      <main className="font-montserrat-thin">
+        <Outlet
+          context={{ walletAddress, balance, chainId, connectWallet, user, isAuthenticated }}
+        />
       </main>
 
       <HamburgerMenu open={menuOpen} onClose={() => setMenuOpen(false)} />
