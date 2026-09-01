@@ -1,33 +1,61 @@
-# EventToken MVP
+# S-PASS (StakePass)
 
-EventToken is an Avalanche Fuji-based MVP for event attendance verification and token airdrops.
+S-PASS (StakePass) is a blockchain-based event attendance and incentive platform built on Avalanche Fuji. It uses refundable attendee stakes and smart-contract-based rewards to encourage event attendance and provide transparent reward distribution.
 
 ## Features
-- Wallet-ready React + TypeScript UI
-- Solidity contracts for event registry, attendance, and airdrop management
-- QR-based check-in experience
-- Organizer dashboard for attendee review and token airdrops
+- React + TypeScript frontend
+- Solidity smart contracts on Avalanche Fuji
+- Wallet connection and event management
+- Attendee registration with refundable staking
+- QR-based event check-in
+- Automatic stake refunds for checked-in attendees
+- No-show stake redistribution
+- Sponsor-funded attendee rewards
+- Organizer, attendee, and sponsor workflows
 
 ## Smart contracts
-- contracts/EventRegistry.sol
-- contracts/Attendance.sol
-- contracts/RewardToken.sol
-- contracts/AirdropManager.sol
+
+The core blockchain logic is implemented in Solidity under `contracts/`.
+
+The contracts handle event management, attendee registration and staking, attendance verification, refunds, no-show redistribution, and sponsor rewards.
 
 ## Local development
-1. Install dependencies: npm install
-2. Start the frontend: npm run dev
-3. Compile contracts: npm run compile
-4. Deploy to Fuji: npm run deploy:fuji
+
+1. Install dependencies:
+
+   `npm install`
+
+2. Start the frontend:
+
+   `npm run dev`
+
+3. Compile the smart contracts:
+
+   `npm run compile`
+
+4. Run the smart contract tests:
+
+   `npm test`
+
+5. Build the production frontend:
+
+   `npm run build`
 
 ## Environment variables
-Create a .env file with:
-- AVALANCHE_FUJI_RPC_URL
-- PRIVATE_KEY
+
+For local blockchain deployment, create a `.env` file containing the required Avalanche Fuji configuration:
+
+- `AVALANCHE_FUJI_RPC_URL`
+- `PRIVATE_KEY`
+
+**Never commit your `.env` file, private key, or seed phrase to GitHub.**
 
 ## Demo flow
-1. Connect wallet
-2. Register for the event
-3. Scan the QR code during the event
-4. Review attendees in the organizer dashboard
-5. Trigger the airdrop
+
+1. Connect a wallet.
+2. Create or select an event.
+3. Register for the event and stake the required amount.
+4. Check in using the event QR code.
+5. Receive the applicable stake refund after successful check-in.
+6. Organizers can review attendee attendance.
+7. Sponsors can fund and distribute rewards.
