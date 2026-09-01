@@ -17,25 +17,25 @@ export default function EventGrid({ events, selectedId, onSelect }: Props) {
           <button
             key={event.id}
             onClick={() => onSelect(event)}
-            className={`group relative rounded-2xl border-2 p-5 text-left shadow-sm transition-all hover:shadow-md ${
+            className={`group relative rounded-2xl border p-5 text-left transition-all hover:-translate-y-0.5 ${
               isSelected
-                ? 'border-brand-500 bg-brand-50 shadow-brand-100'
-                : 'border-gray-200 bg-white hover:border-gray-300'
+                ? 'border-[#e60012]/60 bg-[#e60012]/10 shadow-[0_0_20px_rgba(230,0,18,0.15)]'
+                : 'border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]'
             }`}
           >
             {isSelected && (
-              <span className="absolute right-3 top-3 rounded-full bg-brand-500 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
+              <span className="absolute right-3 top-3 rounded-full bg-[#e60012] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
                 Selected
               </span>
             )}
             <h3
-              className={`text-base font-semibold ${
-                isSelected ? 'text-brand-700' : 'text-gray-900'
+              className={`text-base font-bold ${
+                isSelected ? 'text-white' : 'text-white'
               }`}
             >
               {event.name}
             </h3>
-            <div className="mt-3 space-y-1.5 text-sm text-gray-500">
+            <div className="mt-3 space-y-1.5 text-sm text-white/50">
               <div className="flex items-center gap-1.5">
                 <CalendarDays size={13} />
                 {event.date}
@@ -50,11 +50,11 @@ export default function EventGrid({ events, selectedId, onSelect }: Props) {
               </div>
             </div>
             <div className="mt-3">
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                 <div
                   className={`h-full rounded-full transition-all ${
                     filled >= 90
-                      ? 'bg-brand-500'
+                      ? 'bg-[#e60012]'
                       : filled >= 60
                         ? 'bg-amber-400'
                         : 'bg-emerald-400'
@@ -64,10 +64,10 @@ export default function EventGrid({ events, selectedId, onSelect }: Props) {
               </div>
             </div>
             <div className="mt-3 flex items-center justify-between text-xs">
-              <span className="font-medium text-gray-400">
-                Stake: <span className="text-gray-700">{event.deposit} AVAX</span>
+              <span className="font-semibold text-white/40">
+                Stake: <span className="text-[#e60012]">{event.deposit} AVAX</span>
               </span>
-              <span className="text-gray-400">
+              <span className="text-white/40">
                 {event.capacity - event.registered} left
               </span>
             </div>

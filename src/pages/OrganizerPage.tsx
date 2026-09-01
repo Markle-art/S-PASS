@@ -3,30 +3,12 @@ import { ethers } from 'ethers';
 import { Plus, XCircle, Users, Coins } from 'lucide-react';
 import EventGrid from '../components/EventGrid';
 import { defaultEvents, type StakePassEvent } from '../data/events';
-import { switchToFuji, FUJI_CHAIN_ID } from '../utils/network';
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
-
-const CONTRACT_ADDRESS =
-  (import.meta as ImportMeta & { env?: Record<string, string | undefined> })
-    .env?.VITE_STAKEPASS_CORE_ADDRESS ||
-  '0x7015c225586d4a95ebc585Ba947d7F0236A5D9d1';
-
-const CONTRACT_ABI = [
-  'function createEvent(uint256 _depositAmount) external returns (uint256)',
-  'function checkInAttendee(uint256 _eventId, address _attendee) external',
-  'function closeEventAndDistributePool(uint256 _eventId) external',
-  'function getEvent(uint256 _eventId) external view returns ((uint256 id, address organizer, uint256 depositAmount, uint256 totalStaked, uint256 noShowPool, bool isActive, uint256 checkedInCount, uint256 sponsorBudget, bool closed))',
-];
+import { CONTRACT_ADDRESS, CONTRACT_ABI, ensureSigner } from '../utils/contract';
 
 const dummyAttendees = [
-  { address: '0x8D0f...2A91', status: 'Verified' },
-  { address: '0x1A3c...9F40', status: 'Pending' },
-  { address: '0x4B77...12C2', status: 'Verified' },
+  { address: '0x8D0f...2A91', status: 'Verified' as const },
+  { address: '0x1A3c...9F40', status: 'Pending' as const },
+  { address: '0x4B77...12C2', status: 'Verified' as const },
 ];
 
 export default function OrganizerPage() {
@@ -37,17 +19,6 @@ export default function OrganizerPage() {
   const [statusMessage, setStatusMessage] = useState('Create an event or manage existing ones.');
   const [isBusy, setIsBusy] = useState(false);
 
-  const ensureSigner = async () => {
-    if (!window.ethereum) throw new Error('No wallet detected.');
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const network = await provider.getNetwork();
-    if (Number(network.chainId) !== FUJI_CHAIN_ID) {
-      const switched = await switchToFuji();
-      if (!switched) throw new Error('Please switch to Avalanche Fuji (Chain ID 43113) in your wallet.');
-    }
-    return await provider.getSigner();
-  };
-
   const createEvent = async () => {
     if (!eventName.trim()) {
       setStatusMessage('Please enter an event name.');
@@ -55,10 +26,10 @@ export default function OrganizerPage() {
     }
     try {
       setIsBusy(true);
-      // const signer = await ensureSigner();
-      // const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
-      // const tx = await contract.createEvent(ethers.parseEther(depositAmount));
-      // const receipt = await tx.wait();
+      const signer = await ensureSigner();
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, CONTRACT_ABI, signer);
+      const tx = await contract.createEvent(ethers.parseEther(depositAmount));
+      await tx.wait();
       const newId = events.length + 1;
       const newEvent: StakePassEvent = {
         id: newId,
@@ -71,7 +42,7 @@ export default function OrganizerPage() {
       };
       setEvents((prev) => [...prev, newEvent]);
       setEventName('');
-      setStatusMessage(`"${eventName}" created. Deposit set to ${depositAmount} AVAX.`);
+      setStatusMessage(`"${eventName}" created on-chain. Deposit set to ${depositAmount} AVAX.`);
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : 'Event creation failed.');
     } finally {
@@ -99,74 +70,80 @@ export default function OrganizerPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-5 py-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Organizer Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">{statusMessage}</p>
+        <h1 className="text-2xl font-black uppercase tracking-tight text-white">
+          Organizer Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-white/50">{statusMessage}</p>
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.1em] text-gray-400">Your Events</h2>
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.1em] text-white/40">
+          Your Events
+        </h2>
         <EventGrid events={events} selectedId={selectedEvent?.id ?? null} onSelect={setSelectedEvent} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-brand-600">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div className="flex items-center gap-2 text-[#e60012]">
             <Plus size={18} />
-            <span className="font-semibold text-gray-900">Create Event</span>
+            <span className="font-bold text-white">Create Event</span>
           </div>
           <div className="mt-5 space-y-4">
             <div>
-              <label className="text-xs font-medium uppercase tracking-[0.1em] text-gray-400">
+              <label className="text-xs font-semibold uppercase tracking-[0.1em] text-white/40">
                 Event Name
               </label>
               <input
                 value={eventName}
                 onChange={(e) => setEventName(e.target.value)}
                 placeholder="e.g. Avalanche Summit"
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none ring-0 transition placeholder:text-gray-300 focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none ring-0 transition placeholder:text-white/25 focus:border-[#e60012]/60 focus:ring-2 focus:ring-[#e60012]/20"
               />
             </div>
             <div>
-              <label className="text-xs font-medium uppercase tracking-[0.1em] text-gray-400">
+              <label className="text-xs font-semibold uppercase tracking-[0.1em] text-white/40">
                 Deposit Amount (AVAX)
               </label>
               <input
                 value={depositAmount}
                 onChange={(e) => setDepositAmount(e.target.value)}
-                className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none ring-0 transition focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none ring-0 transition focus:border-[#e60012]/60 focus:ring-2 focus:ring-[#e60012]/20"
               />
             </div>
             <button
               onClick={createEvent}
               disabled={isBusy}
-              className="w-full rounded-xl bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl bg-[#e60012] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isBusy ? 'Processing…' : 'Create Event'}
             </button>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-          <div className="flex items-center gap-2 text-amber-600">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div className="flex items-center gap-2 text-amber-400">
             <XCircle size={18} />
-            <span className="font-semibold text-gray-900">Manage Event</span>
+            <span className="font-bold text-white">Manage Event</span>
           </div>
           <div className="mt-5 space-y-4">
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-              <p className="text-xs font-medium uppercase tracking-[0.1em] text-gray-400">Selected Event</p>
-              <p className="mt-1 font-medium text-gray-900">
+            <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-white/40">
+                Selected Event
+              </p>
+              <p className="mt-1 font-semibold text-white">
                 {selectedEvent ? selectedEvent.name : 'None selected'}
               </p>
               {selectedEvent && (
-                <p className="text-xs text-gray-400">ID: {selectedEvent.id}</p>
+                <p className="text-xs text-white/40">ID: {selectedEvent.id}</p>
               )}
             </div>
             <button
               onClick={closeEvent}
               disabled={isBusy || !selectedEvent}
-              className="w-full rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-sm font-bold text-amber-300 transition hover:bg-amber-400/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Close Event & Distribute Pool
             </button>
@@ -174,36 +151,36 @@ export default function OrganizerPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-        <div className="flex items-center gap-2 border-b border-gray-100 px-6 py-4">
-          <Users size={18} className="text-gray-400" />
-          <span className="font-semibold text-gray-900">
+      <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
+        <div className="flex items-center gap-2 border-b border-white/10 px-6 py-4">
+          <Users size={18} className="text-white/40" />
+          <span className="font-semibold text-white">
             {selectedEvent ? `Attendees — ${selectedEvent.name}` : 'Registered Attendees'}
           </span>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50/50">
-                <th className="px-6 py-3 font-medium text-gray-500">Wallet</th>
-                <th className="px-6 py-3 font-medium text-gray-500">Status</th>
+              <tr className="border-b border-white/10 bg-white/[0.02]">
+                <th className="px-6 py-3 font-semibold text-white/40">Wallet</th>
+                <th className="px-6 py-3 font-semibold text-white/40">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-white/10">
               {dummyAttendees.map((a) => (
-                <tr key={a.address} className="transition hover:bg-gray-50">
-                  <td className="px-6 py-3.5 font-mono text-sm text-gray-700">{a.address}</td>
+                <tr key={a.address} className="transition hover:bg-white/[0.03]">
+                  <td className="px-6 py-3.5 font-mono text-sm text-white/70">{a.address}</td>
                   <td className="px-6 py-3.5">
                     <span
-                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium ${
+                      className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ${
                         a.status === 'Verified'
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-amber-50 text-amber-700'
+                          ? 'bg-emerald-500/10 text-emerald-400'
+                          : 'bg-amber-500/10 text-amber-400'
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
-                          a.status === 'Verified' ? 'bg-emerald-500' : 'bg-amber-500'
+                          a.status === 'Verified' ? 'bg-emerald-400' : 'bg-amber-400'
                         }`}
                       />
                       {a.status}
@@ -216,8 +193,8 @@ export default function OrganizerPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-5 py-3 text-sm text-gray-500">
-        <Coins size={16} className="text-amber-500" />
+      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm text-white/50">
+        <Coins size={16} className="text-amber-400" />
         No-show pool is automatically built from forfeited deposits and distributed at event close.
       </div>
     </div>

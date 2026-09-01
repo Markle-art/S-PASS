@@ -17,6 +17,9 @@ export default {
           900: '#7f1d1d',
         },
       },
+      fontFamily: {
+        sans: ['Montserrat', 'Inter', 'sans-serif'], 
+      },
     },
   },
   plugins: [],

@@ -3,41 +3,13 @@ import { ethers } from 'ethers';
 import { Award, QrCode, Trophy, Coins, ArrowRight } from 'lucide-react';
 import EventGrid from '../components/EventGrid';
 import { defaultEvents, type StakePassEvent } from '../data/events';
-import { switchToFuji, FUJI_CHAIN_ID } from '../utils/network';
-
-declare global {
-  interface Window {
-    ethereum?: any;
-  }
-}
-
-const CONTRACT_ADDRESS =
-  (import.meta as ImportMeta & { env?: Record<string, string | undefined> })
-    .env?.VITE_STAKEPASS_CORE_ADDRESS ||
-  '0x7015c225586d4a95ebc585Ba947d7F0236A5D9d1';
-
-const CONTRACT_ABI = [
-  'function sponsorDeposit(uint256 _eventId) external payable',
-  'function markSponsorTaskCompleted(uint256 _eventId, address _attendee) external',
-  'function claimSponsorReward(uint256 _eventId, address _attendee) external',
-];
+import { CONTRACT_ADDRESS, CONTRACT_ABI, ensureSigner } from '../utils/contract';
 
 export default function SponsorPage() {
   const [selectedEvent, setSelectedEvent] = useState<StakePassEvent | null>(null);
   const [sponsorBudget, setSponsorBudget] = useState('0.5');
   const [statusMessage, setStatusMessage] = useState('Select an event, fund bounties, and reward attendees.');
   const [isBusy, setIsBusy] = useState(false);
-
-  const ensureSigner = async () => {
-    if (!window.ethereum) throw new Error('No wallet detected.');
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const network = await provider.getNetwork();
-    if (Number(network.chainId) !== FUJI_CHAIN_ID) {
-      const switched = await switchToFuji();
-      if (!switched) throw new Error('Please switch to Avalanche Fuji (Chain ID 43113) in your wallet.');
-    }
-    return await provider.getSigner();
-  };
 
   const depositFunds = async () => {
     if (!selectedEvent) {
@@ -100,89 +72,93 @@ export default function SponsorPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6 px-5 py-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Sponsor Dashboard</h1>
-        <p className="mt-1 text-sm text-gray-500">{statusMessage}</p>
+        <h1 className="text-2xl font-black uppercase tracking-tight text-white">
+          Sponsor Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-white/50">{statusMessage}</p>
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-[0.1em] text-gray-400">Active Events</h2>
+        <h2 className="mb-3 text-sm font-bold uppercase tracking-[0.1em] text-white/40">
+          Active Events
+        </h2>
         <EventGrid events={defaultEvents} selectedId={selectedEvent?.id ?? null} onSelect={setSelectedEvent} />
       </div>
 
       {selectedEvent && (
-        <div className="rounded-xl border border-brand-200 bg-brand-50 px-5 py-3 text-sm text-brand-700">
-          Sponsoring: <span className="font-semibold">{selectedEvent.name}</span>
+        <div className="rounded-xl border border-[#e60012]/30 bg-[#e60012]/10 px-5 py-3 text-sm text-[#ff6666]">
+          Sponsoring: <span className="font-bold text-white">{selectedEvent.name}</span>
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
           <div className="flex items-center gap-2">
-            <Coins size={18} className="text-gray-900" />
-            <span className="font-semibold text-gray-900">Fund Bounty Budget</span>
+            <Coins size={18} className="text-white" />
+            <span className="font-bold text-white">Fund Bounty Budget</span>
           </div>
           <div className="mt-5 space-y-4">
-            <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-              <p className="text-xs font-medium uppercase tracking-[0.1em] text-gray-400">
+            <div className="rounded-xl border border-white/10 bg-black/30 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.1em] text-white/40">
                 Event
               </p>
-              <p className="mt-1 font-medium text-gray-900">
+              <p className="mt-1 font-semibold text-white">
                 {selectedEvent ? selectedEvent.name : 'Select an event above'}
               </p>
               {selectedEvent && (
-                <p className="text-xs text-gray-400">ID: {selectedEvent.id}</p>
+                <p className="text-xs text-white/40">ID: {selectedEvent.id}</p>
               )}
             </div>
             <div>
-              <label className="text-xs font-medium uppercase tracking-[0.1em] text-gray-400">
-                  Budget (AVAX)
-                </label>
-                <input
-                  value={sponsorBudget}
-                  onChange={(e) => setSponsorBudget(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 outline-none ring-0 transition focus:border-brand-300 focus:ring-2 focus:ring-brand-100"
-                />
-              </div>
-              <button
-                onClick={depositFunds}
-                disabled={isBusy || !selectedEvent}
-                className="w-full rounded-xl bg-gray-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {isBusy ? 'Processing…' : 'Deposit Bounty Budget'}
-              </button>
+              <label className="text-xs font-semibold uppercase tracking-[0.1em] text-white/40">
+                Budget (AVAX)
+              </label>
+              <input
+                value={sponsorBudget}
+                onChange={(e) => setSponsorBudget(e.target.value)}
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none ring-0 transition focus:border-[#e60012]/60 focus:ring-2 focus:ring-[#e60012]/20"
+              />
             </div>
-          </div>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center gap-2">
-              <Award size={18} className="text-gray-900" />
-              <span className="font-semibold text-gray-900">Actions</span>
-            </div>
-            <div className="mt-5 space-y-3">
-              <button
-                onClick={markTaskComplete}
-                disabled={isBusy || !selectedEvent}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <QrCode size={16} />
-                Mark Sponsor Task Complete
-              </button>
-              <button
-                onClick={claimReward}
-                disabled={isBusy || !selectedEvent}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-brand-200 bg-brand-50 px-4 py-2.5 text-sm font-medium text-brand-700 transition hover:bg-brand-100 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Trophy size={16} />
-                Claim Sponsor Reward
-              </button>
-            </div>
+            <button
+              onClick={depositFunds}
+              disabled={isBusy || !selectedEvent}
+              className="w-full rounded-xl bg-[#e60012] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isBusy ? 'Processing…' : 'Deposit Bounty Budget'}
+            </button>
           </div>
         </div>
 
-      <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-5 py-3 text-sm text-gray-500">
-        <ArrowRight size={16} className="text-gray-400" />
+        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+          <div className="flex items-center gap-2">
+            <Award size={18} className="text-white" />
+            <span className="font-bold text-white">Actions</span>
+          </div>
+          <div className="mt-5 space-y-3">
+            <button
+              onClick={markTaskComplete}
+              disabled={isBusy || !selectedEvent}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-semibold text-white/70 transition hover:bg-white/[0.06] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <QrCode size={16} />
+              Mark Sponsor Task Complete
+            </button>
+            <button
+              onClick={claimReward}
+              disabled={isBusy || !selectedEvent}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#e60012]/40 bg-[#e60012]/10 px-4 py-2.5 text-sm font-bold text-[#ff6666] transition hover:bg-[#e60012]/20 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Trophy size={16} />
+              Claim Sponsor Reward
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.02] px-5 py-3 text-sm text-white/50">
+        <ArrowRight size={16} className="text-white/30" />
         Sponsors fund micro-bounties in AVAX. Attendees scan sponsor QR codes to complete tasks and claim rewards.
       </div>
     </div>
