@@ -17,22 +17,33 @@ export default function EventGrid({ events, selectedId, onSelect }: Props) {
           <button
             key={event.id}
             onClick={() => onSelect(event)}
-            className={`group relative rounded-2xl border p-5 text-left transition-all hover:-translate-y-0.5 ${
+            className={`group relative overflow-hidden rounded-2xl border text-left transition-all hover:-translate-y-0.5 ${
               isSelected
                 ? 'border-[#e60012]/60 bg-[#e60012]/10 shadow-[0_0_20px_rgba(230,0,18,0.15)]'
                 : 'border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]'
             }`}
           >
-            {isSelected && (
-              <span className="absolute right-3 top-3 rounded-full bg-[#e60012] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                Selected
-              </span>
-            )}
-            <h3
-              className={`text-base font-bold ${
-                isSelected ? 'text-white' : 'text-white'
-              }`}
-            >
+            <div className="relative h-28 overflow-hidden bg-gradient-to-br from-red-900 via-red-700 to-black">
+              <img
+                src={event.image}
+                alt={event.name}
+                loading="lazy"
+                onError={(e) => (e.currentTarget.style.display = 'none')}
+                className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+              {isSelected && (
+                <span className="absolute right-3 top-3 rounded-full bg-[#e60012] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Selected
+                </span>
+              )}
+            </div>
+            <div className="p-5">
+              <h3
+                className={`text-base font-bold ${
+                  isSelected ? 'text-white' : 'text-white'
+                }`}
+              >
               {event.name}
             </h3>
             <div className="mt-3 space-y-1.5 text-sm text-white/50">
@@ -70,6 +81,7 @@ export default function EventGrid({ events, selectedId, onSelect }: Props) {
               <span className="text-white/40">
                 {event.capacity - event.registered} left
               </span>
+            </div>
             </div>
           </button>
         );

@@ -1,16 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, MapPin, Ticket } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { getEventById } from '../data/catalog';
 
-const event = {
-  title: 'Avalanche Summit',
-  description: 'A fast-paced conference for founders, builders, and product teams shipping on Avalanche.',
-  location: 'San Francisco • 24 July 2026',
-  reward: '250 SPASS',
-};
+const FEATURED_ID = 1;
+
+const featured = getEventById(FEATURED_ID)!;
 
 export default function EventPage() {
-  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -22,29 +18,30 @@ export default function EventPage() {
         <p className="mt-1 text-sm text-white/50">Explore upcoming events powered by StakePass.</p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.03]">
-        <div className="border-b border-white/10 px-6 py-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#e60012]">
-                Featured event
-              </p>
-              <h2 className="mt-1 text-2xl font-black text-white">{event.title}</h2>
-            </div>
-            <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-3 py-1.5 text-sm font-semibold text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Open for registration
-            </span>
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]">
+        <div className="relative aspect-[21/9] bg-gradient-to-br from-red-900 via-red-700 to-black">
+          <img
+            src={featured.image}
+            alt={featured.title}
+            onError={(e) => (e.currentTarget.style.display = 'none')}
+            className="absolute inset-0 h-full w-full object-cover opacity-70"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+          <div className="absolute bottom-0 left-0 p-6">
+            <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#e60012]">
+              Featured event
+            </p>
+            <h2 className="mt-1 text-2xl font-black text-white sm:text-3xl">{featured.title}</h2>
           </div>
         </div>
 
         <div className="grid gap-6 p-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-4">
-            <p className="leading-relaxed text-white/60">{event.description}</p>
+            <p className="leading-relaxed text-white/60">{featured.description}</p>
             <div className="flex flex-wrap gap-4 text-sm text-white/50">
               <div className="flex items-center gap-2">
                 <CalendarDays size={16} className="text-white/30" />
-                {event.location}
+                {featured.date} • {featured.location}
               </div>
               <div className="flex items-center gap-2">
                 <MapPin size={16} className="text-white/30" />
@@ -52,7 +49,7 @@ export default function EventPage() {
               </div>
             </div>
             <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 p-4 text-sm font-semibold text-emerald-300">
-              Reward token: {event.reward} — StakePass reward points
+              Deposit: {featured.price} — fully refundable on check-in
             </div>
           </div>
 
@@ -61,10 +58,10 @@ export default function EventPage() {
             <ul className="mt-4 space-y-3 text-sm text-white/50">
               {[
                 'Connect your Avalanche wallet',
-                'Register for the event',
-                'Stake the refundable deposit',
+                'Book by staking the refundable deposit',
                 'Check in with the QR code',
-                'Receive rewards after the event',
+                'Deposit is refunded on check-in',
+                'No-shows pool is shared with attendees',
               ].map((step, i) => (
                 <li key={step} className="flex items-center gap-2">
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#e60012]/20 text-xs font-bold text-[#ff6666]">
@@ -75,11 +72,11 @@ export default function EventPage() {
               ))}
             </ul>
             <button
-              onClick={() => navigate(isAuthenticated ? '/attendee' : '/login')}
+              onClick={() => navigate(`/event/${FEATURED_ID}`)}
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#e60012] px-4 py-2.5 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-red-700"
             >
               <Ticket size={16} />
-              Register now
+              View event & book
             </button>
           </div>
         </div>

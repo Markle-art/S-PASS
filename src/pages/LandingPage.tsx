@@ -9,109 +9,16 @@ import {
   MapPin,
   Clock,
 } from 'lucide-react';
+import { catalog } from '../data/catalog';
 
-/* ──────────────────────── MOCK DATA ──────────────────────── */
+const CATEGORY_ORDER = ['Concerts', 'Tech', 'Sports', 'Art', 'Food'];
 
-const topPicks = [
-  {
-    id: 1,
-    title: 'AVALANCHE SUMMIT 2025',
-    description:
-      'The biggest Web3 gathering on Fuji. Three days of keynotes, hackathons, and on-chain demos that will reshape how you think about decentralized events.',
-    organizer: 'AvaLabs',
-    organizerInitials: 'AL',
-    organizerColor: '#e60012',
-    date: 'Jul 18 - 20',
-    location: 'Miami, FL',
-    gradient: 'from-red-900 via-red-700 to-black',
-  },
-  {
-    id: 2,
-    title: 'NEON UNDERGROUND RAVE',
-    description:
-      'An immersive audio-visual experience in a converted warehouse. Stake your spot, check in, and earn micro-bounties from sponsors throughout the night.',
-    organizer: 'BassDAO',
-    organizerInitials: 'BD',
-    organizerColor: '#ff2d55',
-    date: 'Aug 02',
-    location: 'Brooklyn, NY',
-    gradient: 'from-purple-900 via-red-800 to-black',
-  },
-  {
-    id: 3,
-    title: 'DEGEN DERBY - KART RACING',
-    description:
-      'High-speed electric kart racing with on-chain leaderboards. Top finishers split the no-show pool. Losers get bragging rights and nothing else.',
-    organizer: 'SpeedFi',
-    organizerInitials: 'SF',
-    organizerColor: '#ff4444',
-    date: 'Aug 15',
-    location: 'Austin, TX',
-    gradient: 'from-orange-900 via-red-700 to-black',
-  },
-  {
-    id: 4,
-    title: 'SUPREME CODE HACKATHON',
-    description:
-      '48 hours. Zero sleep. Build the future of event ticketing on Avalanche. $50K in prizes, all distributed on-chain via smart contracts.',
-    organizer: 'StakePass',
-    organizerInitials: 'SP',
-    organizerColor: '#e60012',
-    date: 'Sep 05 - 07',
-    location: 'San Francisco, CA',
-    gradient: 'from-red-800 via-black to-gray-900',
-  },
-];
+const categories = CATEGORY_ORDER.map((name) => ({
+  name,
+  events: catalog.filter((e) => e.category === name && !e.featured),
+}));
 
-const categories = [
-  {
-    name: 'Concerts',
-    events: [
-      { id: 101, title: 'Midnight Bass Drop', date: 'Jul 22', location: 'LA', organizer: 'BassDAO', organizerInitials: 'BD', price: '0.5 AVAX', gradient: 'from-red-800 to-black' },
-      { id: 102, title: 'Lo-Fi Rooftop Session', date: 'Jul 25', location: 'Chicago', organizer: 'ChillWave', organizerInitials: 'CW', price: '0.2 AVAX', gradient: 'from-rose-900 to-black' },
-      { id: 103, title: 'Synthwave Nights', date: 'Jul 28', location: 'Portland', organizer: 'RetroFi', organizerInitials: 'RF', price: '0.3 AVAX', gradient: 'from-pink-900 to-black' },
-      { id: 104, title: 'Acoustic & AVAX', date: 'Aug 01', location: 'Nashville', organizer: 'SoundDAO', organizerInitials: 'SD', price: '0.1 AVAX', gradient: 'from-red-700 to-gray-900' },
-    ],
-  },
-  {
-    name: 'Tech',
-    events: [
-      { id: 201, title: 'Smart Contract Workshop', date: 'Aug 05', location: 'SF', organizer: 'AvaLabs', organizerInitials: 'AL', price: 'Free', gradient: 'from-red-900 to-gray-950' },
-      { id: 202, title: 'DeFi Builders Meetup', date: 'Aug 08', location: 'NYC', organizer: 'StakePass', organizerInitials: 'SP', price: '0.1 AVAX', gradient: 'from-red-800 to-black' },
-      { id: 203, title: 'ZK Proofs Deep Dive', date: 'Aug 12', location: 'Denver', organizer: 'CryptoEd', organizerInitials: 'CE', price: '0.4 AVAX', gradient: 'from-orange-900 to-black' },
-      { id: 204, title: 'AI × Web3 Panel', date: 'Aug 15', location: 'Seattle', organizer: 'NexusDAO', organizerInitials: 'ND', price: '0.2 AVAX', gradient: 'from-rose-800 to-black' },
-    ],
-  },
-  {
-    name: 'Sports',
-    events: [
-      { id: 301, title: 'Degen Derby Racing', date: 'Aug 15', location: 'Austin', organizer: 'SpeedFi', organizerInitials: 'SF', price: '1.0 AVAX', gradient: 'from-red-700 to-black' },
-      { id: 302, title: '3v3 Basketball Stake', date: 'Aug 18', location: 'LA', organizer: 'CourtDAO', organizerInitials: 'CD', price: '0.3 AVAX', gradient: 'from-red-900 to-gray-900' },
-      { id: 303, title: 'Surf & Stake Open', date: 'Aug 22', location: 'San Diego', organizer: 'WaveFi', organizerInitials: 'WF', price: '0.5 AVAX', gradient: 'from-rose-800 to-black' },
-      { id: 304, title: 'E-Sports LAN Party', date: 'Aug 25', location: 'Dallas', organizer: 'FragDAO', organizerInitials: 'FD', price: '0.2 AVAX', gradient: 'from-red-800 to-gray-950' },
-    ],
-  },
-  {
-    name: 'Art',
-    events: [
-      { id: 401, title: 'NFT Gallery Opening', date: 'Sep 01', location: 'Miami', organizer: 'ArtBlock', organizerInitials: 'AB', price: 'Free', gradient: 'from-purple-900 to-black' },
-      { id: 402, title: 'Generative Art Live', date: 'Sep 04', location: 'Berlin', organizer: 'GenDAO', organizerInitials: 'GD', price: '0.2 AVAX', gradient: 'from-red-900 to-black' },
-      { id: 403, title: 'Street Art × Crypto', date: 'Sep 08', location: 'London', organizer: 'WallFi', organizerInitials: 'WF', price: '0.1 AVAX', gradient: 'from-rose-900 to-gray-950' },
-      { id: 404, title: 'Digital Sculpture Show', date: 'Sep 12', location: 'Tokyo', organizer: 'MeshDAO', organizerInitials: 'MD', price: '0.3 AVAX', gradient: 'from-red-800 to-black' },
-    ],
-  },
-  {
-    name: 'Food',
-    events: [
-      { id: 501, title: 'Crypto Taco Fest', date: 'Sep 15', location: 'Austin', organizer: 'FoodDAO', organizerInitials: 'FD', price: '0.1 AVAX', gradient: 'from-orange-900 to-black' },
-      { id: 502, title: 'Ramen & Rollup Night', date: 'Sep 18', location: 'NYC', organizer: 'NoodlFi', organizerInitials: 'NF', price: '0.2 AVAX', gradient: 'from-red-800 to-gray-900' },
-      { id: 503, title: 'Wine Tasting on Chain', date: 'Sep 22', location: 'Napa', organizer: 'VinoDAO', organizerInitials: 'VD', price: '0.5 AVAX', gradient: 'from-rose-900 to-black' },
-      { id: 504, title: 'BBQ Stake-Off', date: 'Sep 25', location: 'Kansas City', organizer: 'GrillFi', organizerInitials: 'GF', price: '0.3 AVAX', gradient: 'from-red-700 to-black' },
-    ],
-  },
-];
-
-/* ──────────────────────── COMPONENT ──────────────────────── */
+const topPicks = catalog.filter((e) => e.featured);
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -186,6 +93,15 @@ export default function LandingPage() {
           <div
             className={`relative aspect-[21/9] w-full bg-gradient-to-br ${slide.gradient} transition-all duration-700 ease-out`}
           >
+            {/* slide image */}
+            <img
+              src={slide.image}
+              alt={slide.title}
+              loading="eager"
+              onError={(e) => (e.currentTarget.style.display = 'none')}
+              className="absolute inset-0 h-full w-full object-cover opacity-70"
+            />
+
             {/* grain overlay for texture */}
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-40" />
 
@@ -266,7 +182,7 @@ export default function LandingPage() {
                     ? 'scale-110 border-[#e60012] shadow-[0_0_12px_rgba(230,0,18,0.5)]'
                     : 'border-white/20 hover:border-white/50'
                 }`}
-                style={{ backgroundColor: pick.organizerColor + '22' }}
+                style={{ backgroundColor: (pick.organizerColor ?? '#e60012') + '22' }}
                 title={pick.organizer}
               >
                 <span
@@ -326,9 +242,14 @@ export default function LandingPage() {
               className="group cursor-pointer overflow-hidden rounded-xl border border-white/5 bg-white/[0.02] transition hover:border-[#e60012]/30 hover:bg-white/[0.04]"
             >
               {/* card image */}
-              <div
-                className={`relative aspect-[4/3] bg-gradient-to-br ${ev.gradient}`}
-              >
+              <div className={`relative aspect-[4/3] bg-gradient-to-br ${ev.gradient}`}>
+                <img
+                  src={ev.image}
+                  alt={ev.title}
+                  loading="lazy"
+                  onError={(e) => (e.currentTarget.style.display = 'none')}
+                  className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
                 {/* price badge */}
                 <span className="absolute right-3 top-3 rounded-full bg-black/60 px-3 py-1 text-xs font-bold text-[#e60012] backdrop-blur-sm">

@@ -11,7 +11,11 @@ export default function AttendeePage() {
   const location = useLocation();
   const preselectedId = (location.state as { eventId?: number } | null)?.eventId;
   const [selectedEvent, setSelectedEvent] = useState<StakePassEvent | null>(
-    () => defaultEvents.find((e) => e.id === preselectedId) ?? null,
+    () => {
+      const match = defaultEvents.find((e) => e.id === preselectedId);
+      if (match) return match;
+      return null;
+    },
   );
   const [statusMessage, setStatusMessage] = useState('Select an event and register to get started.');
   const [isBusy, setIsBusy] = useState(false);
