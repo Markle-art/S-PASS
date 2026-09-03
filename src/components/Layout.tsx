@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { ethers } from 'ethers';
-import { Menu, Wallet, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Wallet, LogOut, ChevronDown, Coins } from 'lucide-react';
 import HamburgerMenu from './HamburgerMenu';
 import { FUJI_CHAIN_ID, switchToFuji } from '../utils/network';
 import { useAuth } from '../context/AuthContext';
 import { roleLabel } from '../data/users';
+import { fetchSpassBalance } from '../utils/contract';
+import { getDemoSpassBalance } from '../services/eventService';
 
 declare global {
   interface Window {
@@ -17,6 +19,7 @@ export default function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [walletAddress, setWalletAddress] = useState('');
   const [balance, setBalance] = useState('');
+  const [spassBalance, setSpassBalance] = useState('0');
   const [chainId, setChainId] = useState<number | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const navigate = useNavigate();
@@ -24,10 +27,20 @@ export default function Layout() {
   const { user, isAuthenticated, logout } = useAuth();
 
   const updateBalance = useCallback(async (address: string) => {
-    if (!window.ethereum) return;
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const bal = await provider.getBalance(address);
-    setBalance(parseFloat(ethers.formatEther(bal)).toFixed(4));
+    if (!address) return;
+    try {
+      if (window.ethereum) {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const bal = await provider.getBalance(address);
+        setBalance(parseFloat(ethers.formatEther(bal)).toFixed(4));
+      }
+      const onchainSpass = await fetchSpassBalance(address);
+      const demoSpass = getDemoSpassBalance(address);
+      const totalSpass = (parseFloat(onchainSpass) || 0) + demoSpass;
+      setSpassBalance(totalSpass.toFixed(0));
+    } catch (err) {
+      console.warn('Balance update failed:', err);
+    }
   }, []);
 
   const connectWallet = async () => {
@@ -71,6 +84,7 @@ export default function Layout() {
       if (accounts.length === 0) {
         setWalletAddress('');
         setBalance('');
+        setSpassBalance('0');
       } else {
         setWalletAddress(accounts[0]);
         updateBalance(accounts[0]);
@@ -88,11 +102,11 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/85 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center gap-1.5 text-xl font-black uppercase tracking-tight text-white"
+            className="flex items-center gap-1.5 text-xl font-black uppercase tracking-tight text-white transition hover:opacity-90"
           >
             Stake<span className="text-[#e60012]">Pass</span>
             {!isHome && (
@@ -100,11 +114,11 @@ export default function Layout() {
             )}
           </button>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2 sm:gap-2.5">
             {isAuthenticated && user && (
               <button
                 onClick={() => navigate('/login')}
-                className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 sm:inline-flex"
+                className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 sm:inline-flex"
                 title={`Signed in as ${user.name}`}
               >
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[#e60012] text-[10px] font-black uppercase text-white">
@@ -114,7 +128,7 @@ export default function Layout() {
                     .join('')}
                 </span>
                 <span className="text-left leading-tight">
-                  <span className="block text-xs font-semibold text-white">{user.name}</span>
+                  <span className="block text-xs font-bold text-white">{user.name}</span>
                   <span className="block text-[10px] uppercase tracking-wide text-white/40">
                     {roleLabel[user.role]}
                   </span>
@@ -124,10 +138,10 @@ export default function Layout() {
 
             {chainId && (
               <span
-                className={`hidden items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium md:inline-flex ${
+                className={`hidden items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold md:inline-flex ${
                   chainId === FUJI_CHAIN_ID
-                    ? 'bg-emerald-500/10 text-emerald-400'
-                    : 'bg-amber-500/10 text-amber-400'
+                    ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                    : 'border border-amber-500/30 bg-amber-500/10 text-amber-400'
                 }`}
               >
                 <span
@@ -135,23 +149,35 @@ export default function Layout() {
                     chainId === FUJI_CHAIN_ID ? 'bg-emerald-400' : 'bg-amber-400'
                   }`}
                 />
-                {chainId === FUJI_CHAIN_ID ? 'Fuji' : `Chain ${chainId}`}
+                {chainId === FUJI_CHAIN_ID ? 'Avalanche Fuji' : `Chain ${chainId}`}
               </span>
             )}
 
             {walletAddress && balance && (
-              <span className="hidden rounded-lg bg-white/[0.05] px-2.5 py-1.5 text-xs font-medium text-white/60 lg:inline-flex">
+              <span className="hidden rounded-xl border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-white/80 lg:inline-flex">
                 {balance} AVAX
               </span>
             )}
 
+            {walletAddress && (
+              <button
+                onClick={() => navigate('/rewards')}
+                title="Your StakePass SPASS Reward Tokens"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-[#e60012]/40 bg-[#e60012]/15 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-[#e60012]/25"
+              >
+                <Coins size={13} className="text-[#ff6666]" />
+                <span className="text-[#ff5555]">{spassBalance}</span>
+                <span className="text-white/80">SPASS</span>
+              </button>
+            )}
+
             <button
               onClick={() => (isAuthenticated ? logout() : navigate('/login'))}
-              className="hidden items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3.5 py-2 text-sm font-medium text-white/70 transition hover:border-white/30 hover:text-white md:inline-flex"
+              className="hidden items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-1.5 text-xs font-semibold text-white/70 transition hover:border-white/30 hover:text-white md:inline-flex"
             >
               {isAuthenticated ? (
                 <>
-                  <LogOut size={15} />
+                  <LogOut size={14} />
                   Sign out
                 </>
               ) : (
@@ -164,9 +190,9 @@ export default function Layout() {
 
             <button
               onClick={connectWallet}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#e60012] px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-red-700"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e60012] px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-700 shadow-[0_4px_20px_rgba(230,0,18,0.35)]"
             >
-              <Wallet size={15} />
+              <Wallet size={14} />
               {isConnecting ? (
                 'Connecting…'
               ) : walletAddress ? (
@@ -178,17 +204,26 @@ export default function Layout() {
 
             <button
               onClick={() => setMenuOpen(true)}
-              className="rounded-lg border border-white/10 p-2 text-white/60 transition hover:border-white/30 hover:text-white"
+              className="rounded-xl border border-white/10 p-2 text-white/60 transition hover:border-white/30 hover:text-white"
             >
-              <Menu size={22} />
+              <Menu size={20} />
             </button>
           </div>
         </div>
       </header>
 
-      <main className="font-montserrat-thin">
+      <main className="min-h-[calc(100vh-4rem)]">
         <Outlet
-          context={{ walletAddress, balance, chainId, connectWallet, user, isAuthenticated }}
+          context={{
+            walletAddress,
+            balance,
+            spassBalance,
+            chainId,
+            connectWallet,
+            user,
+            isAuthenticated,
+            refreshBalances: () => updateBalance(walletAddress),
+          }}
         />
       </main>
 
@@ -196,3 +231,4 @@ export default function Layout() {
     </div>
   );
 }
+
