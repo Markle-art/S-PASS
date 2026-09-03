@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, Mail, Lock, User as UserIcon, Ticket, CalendarCheck, Award, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { placeholderAccounts, type Role } from '../data/users';
@@ -13,10 +13,19 @@ const roleMeta: Record<Role, { icon: typeof Ticket; color: string; ring: string 
 export default function LoginPage() {
   const { login, loginAs } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+
+  const from = (location.state as { from?: string } | null)?.from;
+
+  const redirectAfterLogin = (role: Role) => {
+    navigate(from ?? (role === 'organizer' ? '/organizer' : role === 'sponsor' ? '/sponsor' : '/'), {
+      replace: true,
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,16 +37,12 @@ export default function LoginPage() {
     const role = placeholderAccounts.find(
       (a) => a.email.toLowerCase() === email.trim().toLowerCase(),
     )?.role;
-    navigate(role === 'organizer' ? '/organizer' : role === 'sponsor' ? '/sponsor' : '/', {
-      replace: true,
-    });
+    redirectAfterLogin(role ?? 'attendee');
   };
 
   const quickLogin = (role: Role) => {
     loginAs(role);
-    navigate(role === 'organizer' ? '/organizer' : role === 'sponsor' ? '/sponsor' : '/', {
-      replace: true,
-    });
+    redirectAfterLogin(role);
   };
 
   return (
