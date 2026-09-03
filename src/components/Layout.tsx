@@ -21,7 +21,7 @@ export default function Layout() {
   const [balance, setBalance] = useState('');
   const [spassBalance, setSpassBalance] = useState('0');
   const [chainId, setChainId] = useState<number | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false)
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
@@ -190,7 +190,7 @@ export default function Layout() {
 
             <button
               onClick={connectWallet}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e60012] px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-700 shadow-[0_4px_20px_rgba(230,0,18,0.35)]"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-[#e60012] px-3.5 py-2 text-xs font-bold uppercase tracking-wide text-white transition hover:bg-red-700 sm:gap-2 sm:px-4 sm:text-sm shadow-[0_4px_20px_rgba(230,0,18,0.35)]"
             >
               <Wallet size={14} />
               {isConnecting ? (
@@ -231,4 +231,3 @@ export default function Layout() {
     </div>
   );
 }
-
